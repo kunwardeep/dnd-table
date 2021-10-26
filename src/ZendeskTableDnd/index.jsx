@@ -1,11 +1,6 @@
 import React, { useState } from "react";
 import Column from "./Column";
-// const columns = [
-//   { name: "pet name", displayName: "PET NAME", width: "20" },
-//   { name: "parent name", displayName: "PARENT NAME", width: "20" },
-//   { name: "email", displayName: "EMAIL", width: "40" },
-//   { name: "last visit", displayName: "LAST VISIT", width: "20" },
-// ];
+
 const rows = [
   {
     "pet name": "Hulli hardan dauda guda dev gauda",
@@ -40,10 +35,48 @@ const rows = [
 ];
 
 const ZendeskTableDnd = () => {
+  const [hoverRowIndex, setHoverRowIndex] = useState(null);
+  const [focusRowIndex, setFocusRowIndex] = useState(null);
+
   return (
-    <div tabindex={0} style={{ overflowX: "auto" }}>
-      <Column columnName="pet name" rows={rows} />
+    <div tabIndex={0}>
+      <div style={{ overflowX: "auto" }}>
+        <Column
+          first={true}
+          key={1}
+          columnName="pet name"
+          rows={rows}
+          width={"200px"}
+          hoverRowIndex={hoverRowIndex}
+          setHoverRowIndex={setHoverRowIndex}
+          focusRowIndex={focusRowIndex}
+          setFocusRowIndex={setFocusRowIndex}
+        />
+        <Column
+          first={false}
+          key={2}
+          columnName="parent name"
+          rows={rows}
+          width={"200px"}
+          hoverRowIndex={hoverRowIndex}
+          setHoverRowIndex={setHoverRowIndex}
+          focusRowIndex={focusRowIndex}
+          setFocusRowIndex={setFocusRowIndex}
+        />
+        <Column
+          first={false}
+          key={3}
+          columnName="email"
+          rows={rows}
+          width={"200px"}
+          hoverRowIndex={hoverRowIndex}
+          setHoverRowIndex={setHoverRowIndex}
+          focusRowIndex={focusRowIndex}
+          setFocusRowIndex={setFocusRowIndex}
+        />
+      </div>
       <button>sss</button>
+
       <button>sss</button>
       <button>sss</button>
       <button>sss</button>
