@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import Column from "./Column";
+import { DragDropContext, Droppable } from "react-beautiful-dnd";
+import styled from "styled-components";
 
 const rows = [
   {
@@ -34,47 +36,77 @@ const rows = [
   },
 ];
 
+const TableColumns = styled.div`
+  padding: 8px;
+`;
+
 const ZendeskTableDnd = () => {
   const [hoverRowIndex, setHoverRowIndex] = useState(null);
   const [focusRowIndex, setFocusRowIndex] = useState(null);
-
+  const onDragEnd = (result) => {
+    console.log("Drag end");
+  };
   return (
     <div tabIndex={0}>
-      <div style={{ overflowX: "auto" }}>
-        <Column
-          first={true}
-          key={1}
-          columnName="pet name"
-          rows={rows}
-          width={"200px"}
-          hoverRowIndex={hoverRowIndex}
-          setHoverRowIndex={setHoverRowIndex}
-          focusRowIndex={focusRowIndex}
-          setFocusRowIndex={setFocusRowIndex}
-        />
-        <Column
-          first={false}
-          key={2}
-          columnName="parent name"
-          rows={rows}
-          width={"200px"}
-          hoverRowIndex={hoverRowIndex}
-          setHoverRowIndex={setHoverRowIndex}
-          focusRowIndex={focusRowIndex}
-          setFocusRowIndex={setFocusRowIndex}
-        />
-        <Column
-          first={false}
-          key={3}
-          columnName="email"
-          rows={rows}
-          width={"200px"}
-          hoverRowIndex={hoverRowIndex}
-          setHoverRowIndex={setHoverRowIndex}
-          focusRowIndex={focusRowIndex}
-          setFocusRowIndex={setFocusRowIndex}
-        />
-      </div>
+      <DragDropContext onDragEnd={onDragEnd}>
+        <Droppable droppableId={"droppable"}>
+          {(droppableProps) => {
+            return (
+              <TableColumns ref={droppableProps.innerRef} {...droppableProps}>
+                <Column
+                  first={true}
+                  columnIdStr="pet name"
+                  index={0}
+                  columnName="pet name"
+                  rows={rows}
+                  width={"200px"}
+                  hoverRowIndex={hoverRowIndex}
+                  setHoverRowIndex={setHoverRowIndex}
+                  focusRowIndex={focusRowIndex}
+                  setFocusRowIndex={setFocusRowIndex}
+                />
+                <Column
+                  first={false}
+                  columnIdStr="parent name"
+                  index={1}
+                  columnName="parent name"
+                  rows={rows}
+                  width={"200px"}
+                  hoverRowIndex={hoverRowIndex}
+                  setHoverRowIndex={setHoverRowIndex}
+                  focusRowIndex={focusRowIndex}
+                  setFocusRowIndex={setFocusRowIndex}
+                />
+                <Column
+                  first={false}
+                  columnIdStr="email"
+                  index={2}
+                  columnName="email"
+                  rows={rows}
+                  width={"200px"}
+                  hoverRowIndex={hoverRowIndex}
+                  setHoverRowIndex={setHoverRowIndex}
+                  focusRowIndex={focusRowIndex}
+                  setFocusRowIndex={setFocusRowIndex}
+                />
+                <Column
+                  first={false}
+                  columnIdStr="last visit"
+                  index={3}
+                  columnName="last visit"
+                  rows={rows}
+                  width={"200px"}
+                  hoverRowIndex={hoverRowIndex}
+                  setHoverRowIndex={setHoverRowIndex}
+                  focusRowIndex={focusRowIndex}
+                  setFocusRowIndex={setFocusRowIndex}
+                />
+                {droppableProps.placeholder}
+              </TableColumns>
+            );
+          }}
+        </Droppable>
+      </DragDropContext>
       <button>sss</button>
 
       <button>sss</button>
