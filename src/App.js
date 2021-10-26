@@ -1,25 +1,69 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { Component } from "react";
+import ReactDOM from "react-dom";
+import "@atlaskit/css-reset";
+import { DEFAULT_THEME, ThemeProvider } from "@zendeskgarden/react-theming";
+import ZendeskTable from "./ZendeskTable";
+import ZendeskTableDnd from "./ZendeskTableDnd";
+import { BrowserRouter, Route, Switch, NavLink } from "react-router-dom";
 
-function App() {
+const Navigation = () => {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <NavLink to="/ZendeskTable">ZendeskTable</NavLink>
+      <br />
+      <NavLink to="/ZendeskTableDnd">ZendeskTableDnd</NavLink>
     </div>
   );
-}
+};
 
+const Home = () => {
+  return (
+    <div>
+      <h1>Home</h1>
+    </div>
+  );
+};
+
+class App extends Component {
+  render() {
+    return (
+      <BrowserRouter>
+        <div>
+          <Switch>
+            <Route path="/" component={Home} exact />
+            <Route path="/ZendeskTable" component={ZendeskTable} />
+            <Route path="/ZendeskTableDnd" component={ZendeskTableDnd} />
+            <Route component={Error} />
+          </Switch>
+          <Navigation />
+        </div>
+      </BrowserRouter>
+    );
+  }
+}
+// class App extends React.Component {
+//   render() {
+//     return (
+//       <div style={{ padding: DEFAULT_THEME.space.md }}>
+//         <ThemeProvider>
+//           <BrowserRouter>
+//             <div>
+//               <Navigation />
+//               <Switch>
+//                 {/* <Route path="/" component={HomePage} exact /> */}
+//                 <Route path="/ZendeskTable" component={ZendeskTable} />
+//                 <Route path="/ZendeskTableDnd" component={ZendeskTableDnd} />
+//                 <Route component={Error} />
+//               </Switch>
+//             </div>
+//           </BrowserRouter>
+//           {/* <ZendeskTable />
+//           <ZendeskTableDnd /> */}
+//         </ThemeProvider>
+//       </div>
+//     );
+//   }
+// }
 export default App;
+
+// ReactDOM.render(<App />, document.getElementById("root"));
