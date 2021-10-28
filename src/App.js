@@ -23,11 +23,16 @@ const Home = () => {
   );
 };
 
+const theme = {
+  ...DEFAULT_THEME,
+  // rtl: true,
+};
+
 class App extends Component {
   render() {
     return (
       <div style={{ padding: DEFAULT_THEME.space.md }}>
-        <ThemeProvider>
+        <ThemeProvider theme={theme}>
           <BrowserRouter>
             <div>
               <Navigation />

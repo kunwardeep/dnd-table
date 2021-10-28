@@ -49,7 +49,7 @@ const Column = ({
           <Body>
             {rows.map((row, rowIdx) => {
               return (
-                <Row
+                <StyledRow
                   id={rowIdx}
                   key={rowIdx}
                   isHovered={rowIdx === hoverRowIndex}
@@ -58,7 +58,7 @@ const Column = ({
                   onClick={handleOnClick}
                 >
                   <StyledCell isTruncated>{row[columnName]}</StyledCell>
-                </Row>
+                </StyledRow>
               );
             })}
           </Body>
@@ -69,6 +69,7 @@ const Column = ({
 };
 
 export default Column;
+const StyledRow = styled(Row)``;
 
 const StyledCell = styled(Cell)``;
 
@@ -76,5 +77,6 @@ const StyledTable = styled(Table)`
   // table-layout: fixed;
   width: ${(props) => props.width || "500px"};
   // overflow: hidden;
-  // display: inline-table;
+  display: inline-table;
+  //
 `;
