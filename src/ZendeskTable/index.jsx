@@ -10,49 +10,19 @@ import {
   HeaderCell,
 } from "@zendeskgarden/react-tables";
 import { KEY_CODES } from "@zendeskgarden/container-utilities";
-const TABLE_BODY_ROW_NAME = "CUSTOMERS_TBL_BODY_ROW_";
-const TABLE_HEADER_ROW_NAME = "CUSTOMERS_TBL_HEADER_ROW_";
+import {
+  findDownBodyCellId,
+  findUpBodyCellId,
+  findPreviousBodyCellId,
+  findNextBodyCellId,
+  getCurrentHeaderRowAndColumnIdx,
+} from "./keyboardInteraction";
+import { dataColumns, dataRows } from "./testData";
+import { headerCellId, bodyCellId } from "./tableMetaData";
 
-const columns = [
-  { name: "pet name", displayName: "PET NAME", width: "20" },
-  { name: "parent name", displayName: "PARENT NAME", width: "20" },
-  { name: "email", displayName: "EMAIL", width: "40" },
-  { name: "last visit", displayName: "LAST VISIT", width: "20" },
-];
-const rows = [
-  {
-    "pet name": "Hulli hardan dauda guda dev gauda",
-    "parent name": "Haven Collins",
-    email: "iamabigemailyesiamthisisme@gmail.com",
-    "last visit": "6/5/2021",
-  },
-  {
-    "pet name": "Weissnat",
-    "parent name": "Myah Wolff",
-    email: "Chester_Funk37@gmail.com",
-    "last visit": "12/8/2020",
-  },
-  {
-    "pet name": "Kulas",
-    "parent name": "Alexander Grant",
-    email: "Beth44@hotmail.com",
-    "last visit": "4/10/2021",
-  },
-  {
-    "pet name": "Bogan",
-    "parent name": "Raymond Koss",
-    email: "Diego.Metz@hotmail.com",
-    "last visit": "5/27/2021",
-  },
-  {
-    "pet name": "Stanton",
-    "parent name": "Henri Green",
-    email: "Kaela_Klein98@yahoo.com",
-    "last visit": "2/14/2021",
-  },
-];
 const ZendeskTable = () => {
-  const [cols, setCols] = useState(columns);
+  const [cols, setCols] = useState(dataColumns);
+  const [rows, setRows] = useState(dataRows);
   const [dragOverColumnName, setDragOverColumnName] = useState("");
   const [draggingColumnIdx, setDraggingColumnIdx] = useState(0);
   const [headerCellTabPressed, setHeaderCellTabPressed] = useState(false);
@@ -76,7 +46,7 @@ const ZendeskTable = () => {
   const handleOnDrop = (e) => {
     const { id } = e.target;
     const droppedColIdx = cols.findIndex((col) => col.name === id);
-    setCols(swap(cols, droppedColIdx, draggingColumnIdx));
+    setCols(rearrangeColumns(draggingColumnIdx, droppedColIdx));
     setDragOverColumnName("");
   };
 
@@ -85,6 +55,22 @@ const ZendeskTable = () => {
     arr[swapIndex1] = arr[swapIndex2];
     arr[swapIndex2] = temp;
     return arr;
+  };
+
+  const rearrangeColumns = (movedFromIdx, movedToIdx) => {
+    const movingLeft = movedFromIdx > movedToIdx;
+    const movingRight = movedFromIdx < movedToIdx;
+    let newCols = [...cols];
+    if (movingLeft) {
+      for (let i = movedFromIdx; i > movedToIdx; i--) {
+        newCols = swap(newCols, i, i - 1);
+      }
+    } else if (movingRight) {
+      for (let i = movedFromIdx; i < movedToIdx; i++) {
+        newCols = swap(newCols, i, i + 1);
+      }
+    }
+    return newCols;
   };
 
   const onHeaderCellKeyUp = (e) => {
@@ -99,7 +85,7 @@ const ZendeskTable = () => {
     console.log("draggingColumnIdx", draggingColumnIdx);
 
     if (headerCellTabPressed) {
-      const totalColumns = e.currentTarget.parentElement.childElementCount;
+      const totalColumns = cols.length;
       if (e.keyCode === KEY_CODES.LEFT && draggingColumnIdx !== 0) {
         setHeaderCellMoving(true);
         setDragOverColumnName(e.currentTarget.id);
@@ -129,81 +115,32 @@ const ZendeskTable = () => {
     }
   };
 
-  const getCurrentHeaderRowAndColumnIdx = (element) => {
-    const [currentRowIdx, currentColumnIdx] = element
-      .getAttribute("data-header-cell-id")
-      .replace(TABLE_HEADER_ROW_NAME, "")
-      .split("_");
-    return [parseInt(currentRowIdx, 10), parseInt(currentColumnIdx, 10)];
-  };
-
   const onBodyCellKeyUp = (e) => {
+    console.log(e.keyCode);
+    const totalRows = rows.length;
+    const totalColumns = cols.length;
     if (e.keyCode === KEY_CODES.LEFT) {
-      const prevCell = findPreviousBodyCellId(e.currentTarget);
+      const prevCell = findPreviousBodyCellId(e.currentTarget, totalColumns);
       document.querySelector(`[data-body-cell-id="${prevCell}"]`).focus();
     }
-  };
-
-  const getCurrentBodyRowAndColumnIdx = (element) => {
-    const [currentRowIdx, currentColumnIdx] = element
-      .getAttribute("data-body-cell-id")
-      .replace(TABLE_BODY_ROW_NAME, "")
-      .split("_");
-    return [parseInt(currentRowIdx, 10), parseInt(currentColumnIdx, 10)];
-  };
-
-  const findPreviousBodyCellId = (element) => {
-    const [currentRowIdx, currentColumnIdx] =
-      getCurrentBodyRowAndColumnIdx(element);
-    const totalColumns = element.parentElement.childElementCount;
-    let newCellRowIdx = 0;
-    let newCellColumnIdx = 0;
-
-    if (currentColumnIdx !== 0 && currentRowIdx !== 0) {
-      newCellColumnIdx = currentColumnIdx - 1;
-      newCellRowIdx = currentRowIdx;
-    } else if (currentColumnIdx === 0 && currentRowIdx !== 0) {
-      newCellRowIdx = currentRowIdx - 1;
-      newCellColumnIdx = totalColumns - 1;
-    } else if (currentColumnIdx !== 0 && currentRowIdx === 0) {
-      newCellColumnIdx = currentColumnIdx - 1;
-      newCellRowIdx = currentRowIdx;
-    } else if (currentColumnIdx === 0 && currentRowIdx === 0) {
-      console.log("at the end think what we can do");
-      // We should find a way to get to the header here
+    if (e.keyCode === KEY_CODES.RIGHT) {
+      const nextCell = findNextBodyCellId(
+        e.currentTarget,
+        totalColumns,
+        totalRows
+      );
+      document.querySelector(`[data-body-cell-id="${nextCell}"]`).focus();
     }
-    return bodyCellId(newCellRowIdx, newCellColumnIdx);
-  };
-
-  const findTopBodyCellId = (element) => {
-    const [currentRowIdx, currentColumnIdx] =
-      getCurrentBodyRowAndColumnIdx(element);
-    const totalColumns = element.parentElement.childElementCount;
-    let newCellRowIdx = 0;
-    let newCellColumnIdx = 0;
-
-    if (currentColumnIdx !== 0 && currentRowIdx !== 0) {
-      newCellColumnIdx = currentColumnIdx - 1;
-      newCellRowIdx = currentRowIdx;
-    } else if (currentColumnIdx === 0 && currentRowIdx !== 0) {
-      newCellRowIdx = currentRowIdx - 1;
-      newCellColumnIdx = totalColumns - 1;
-    } else if (currentColumnIdx !== 0 && currentRowIdx === 0) {
-      newCellColumnIdx = currentColumnIdx - 1;
-      newCellRowIdx = currentRowIdx;
-    } else if (currentColumnIdx === 0 && currentRowIdx === 0) {
-      console.log("at the end think what we can do");
-      // We should find a way to get to the header here
+    if (e.keyCode === KEY_CODES.UP) {
+      console.log("press up");
+      const upCell = findUpBodyCellId(e.currentTarget);
+      document.querySelector(`[data-body-cell-id="${upCell}"]`).focus();
     }
-    return bodyCellId(newCellRowIdx, newCellColumnIdx);
-  };
-
-  const bodyCellId = (rowIdx, colIdx) => {
-    return `${TABLE_BODY_ROW_NAME}${rowIdx}_${colIdx}`;
-  };
-
-  const headerCellId = (colIdx) => {
-    return `${TABLE_HEADER_ROW_NAME}0_${colIdx}`;
+    if (e.keyCode === KEY_CODES.DOWN) {
+      console.log("press top");
+      const downCell = findDownBodyCellId(e.currentTarget, totalRows);
+      document.querySelector(`[data-body-cell-id="${downCell}"]`).focus();
+    }
   };
 
   return (

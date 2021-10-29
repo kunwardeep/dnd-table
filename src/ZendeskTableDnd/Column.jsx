@@ -77,6 +77,6 @@ const StyledTable = styled(Table)`
   // table-layout: fixed;
   width: ${(props) => props.width || "500px"};
   // overflow: hidden;
-  display: inline-table;
+  // display: inline-table;
   //
 `;
