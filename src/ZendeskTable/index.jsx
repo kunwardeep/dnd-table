@@ -19,14 +19,44 @@ import {
 } from "./keyboardInteraction";
 import { dataColumns, dataRows } from "./testData";
 import { headerCellId, bodyCellId } from "./tableMetaData";
-
+import ListOfColumns from "./ListOfColumns";
 const ZendeskTable = () => {
-  const [cols, setCols] = useState(dataColumns);
-  const [rows, setRows] = useState(dataRows);
+  const removeProperty =
+    (delProp) =>
+    ({ [delProp]: _, ...rest }) =>
+      rest;
+
+  const displayedDataColumns = (columns) =>
+    columns.filter((col) => {
+      return col.isDisplayed === true;
+    });
+
+  const removeDataColumnName = dataColumns.filter((col) => {
+    return col.isDisplayed === false;
+  });
+
+  const displayedDataColumnsOnRows = (rows) =>
+    rows.map((row) => {
+      let rowWithRemovedColumns = row;
+      removeDataColumnName.forEach((column) => {
+        rowWithRemovedColumns = removeProperty(column.name)(
+          rowWithRemovedColumns
+        );
+      });
+      return rowWithRemovedColumns;
+    });
+
+  const [cols, setCols] = useState(displayedDataColumns(dataColumns));
+  const [rows, setRows] = useState(displayedDataColumnsOnRows(dataRows));
   const [dragOverColumnName, setDragOverColumnName] = useState("");
   const [draggingColumnIdx, setDraggingColumnIdx] = useState(0);
   const [headerCellTabPressed, setHeaderCellTabPressed] = useState(false);
   const [headerCellMoving, setHeaderCellMoving] = useState(false);
+
+  const setTable = (cols) => {
+    setCols(displayedDataColumns(cols));
+    setRows(displayedDataColumnsOnRows(dataRows));
+  };
 
   const handleDragStart = (e) => {
     const { id } = e.target;
@@ -75,14 +105,11 @@ const ZendeskTable = () => {
 
   const onHeaderCellKeyUp = (e) => {
     if (!headerCellTabPressed && e.keyCode === KEY_CODES.SPACE) {
-      console.log("space bar fired");
       setHeaderCellTabPressed(true);
 
       const [rowIdx, colIdx] = getCurrentHeaderRowAndColumnIdx(e.currentTarget);
-      console.log("IDX.idx", colIdx);
       setDraggingColumnIdx(colIdx);
     }
-    console.log("draggingColumnIdx", draggingColumnIdx);
 
     if (headerCellTabPressed) {
       const totalColumns = cols.length;
@@ -116,7 +143,6 @@ const ZendeskTable = () => {
   };
 
   const onBodyCellKeyUp = (e) => {
-    console.log(e.keyCode);
     const totalRows = rows.length;
     const totalColumns = cols.length;
     if (e.keyCode === KEY_CODES.LEFT) {
@@ -144,51 +170,63 @@ const ZendeskTable = () => {
   };
 
   return (
-    <div tabIndex={0} style={{ overflowX: "auto" }}>
-      <StyledTable data-test-id="hhh">
-        <Head>
-          <HeaderRow>
-            {cols.map((col, colIdx) => (
-              <StyledHeaderCell
-                data-header-cell-id={headerCellId(colIdx)}
-                tabIndex={0}
-                onKeyUp={onHeaderCellKeyUp}
-                // onKeyUp={onHeaderCellKeyUp}
-                width={col.width}
-                id={col.name}
-                key={col.name}
-                draggable
-                onDragStart={handleDragStart}
-                onDragOver={handleDragOver}
-                onDrop={handleOnDrop}
-                onDragEnter={handleDragEnter}
-                dragOver={col.name === dragOverColumnName}
-              >
-                {col.displayName}
-              </StyledHeaderCell>
-            ))}
-          </HeaderRow>
-        </Head>
-        <Body>
-          {rows.map((row, rowIdx) => (
-            <Row key={rowIdx} id={rowIdx}>
-              {Object.entries(row).map(([_, v], colIdx) => (
-                <StyledCell
-                  data-body-cell-id={bodyCellId(rowIdx, colIdx)}
+    <div>
+      <div>
+        <ListOfColumns
+          tableColumns={dataColumns}
+          setExternalColumns={setCols}
+        />
+      </div>
+      <div tabIndex={0} style={{ overflowX: "auto" }}>
+        <StyledTable data-test-id="hhh">
+          <Head>
+            <HeaderRow>
+              {cols.map((col, colIdx) => (
+                <StyledHeaderCell
+                  data-header-cell-id={headerCellId(colIdx)}
                   tabIndex={0}
-                  onKeyUp={onBodyCellKeyUp}
-                  key={v}
-                  dragOver={cols[colIdx].name === dragOverColumnName}
+                  onKeyUp={onHeaderCellKeyUp}
+                  // onKeyUp={onHeaderCellKeyUp}
+                  width={col.width}
+                  id={col.name}
+                  key={col.name}
+                  draggable
+                  onDragStart={handleDragStart}
+                  onDragOver={handleDragOver}
+                  onDrop={handleOnDrop}
+                  onDragEnter={handleDragEnter}
+                  dragOver={col.name === dragOverColumnName}
                 >
-                  {row[cols[colIdx].name]}
-                </StyledCell>
+                  {col.displayName}
+                </StyledHeaderCell>
               ))}
-            </Row>
-          ))}
-        </Body>
-      </StyledTable>
-      <button>sss</button>
-      <button>sss</button>
+            </HeaderRow>
+          </Head>
+          <Body>
+            {rows.map((row, rowIdx) => {
+              return (
+                <Row key={rowIdx} id={rowIdx}>
+                  {Object.entries(row).map(([_, v], colIdx) => {
+                    return (
+                      <StyledCell
+                        data-body-cell-id={bodyCellId(rowIdx, colIdx)}
+                        tabIndex={0}
+                        onKeyUp={onBodyCellKeyUp}
+                        key={v}
+                        dragOver={cols[colIdx].name === dragOverColumnName}
+                      >
+                        {row[cols[colIdx].name]}
+                      </StyledCell>
+                    );
+                  })}
+                </Row>
+              );
+            })}
+          </Body>
+        </StyledTable>
+        <button>sss</button>
+        <button>sss</button>
+      </div>
     </div>
   );
 };
