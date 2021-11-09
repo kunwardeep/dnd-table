@@ -20,6 +20,7 @@ import {
 import { dataColumns, dataRows } from "./testData";
 import { headerCellId, bodyCellId } from "./tableMetaData";
 import ListOfColumns from "./ListOfColumns";
+
 const ZendeskTable = () => {
   const removeProperty =
     (delProp) =>
@@ -172,10 +173,10 @@ const ZendeskTable = () => {
   return (
     <div>
       <div>
-        <ListOfColumns
+        {/* <ListOfColumns
           tableColumns={dataColumns}
           setExternalColumns={setCols}
-        />
+        /> */}
       </div>
       <div tabIndex={0} style={{ overflowX: "auto" }}>
         <StyledTable data-test-id="hhh">
@@ -213,7 +214,7 @@ const ZendeskTable = () => {
                         tabIndex={0}
                         onKeyUp={onBodyCellKeyUp}
                         key={v}
-                        dragOver={cols[colIdx].name === dragOverColumnName}
+                        // dragOver={cols[colIdx].name === dragOverColumnName}
                       >
                         {row[cols[colIdx].name]}
                       </StyledCell>
