@@ -10,6 +10,6 @@ export const DATA_COMPONENT_ID = "drag-and-drop-table";
 export const bodyCellId = (rowIdx: number, colIdx: number) => {
   return `${TABLE_BODY_CELL_ID_VALUE}${rowIdx}_${colIdx}`;
 };
-export const headerCellId = (colIdx: number) => {
-  return `${TABLE_HEADER_CELL_ID_VALUE}0_${colIdx}`;
+export const headerCellId = (rowIdx: number, colIdx: number) => {
+  return `${TABLE_HEADER_CELL_ID_VALUE}${rowIdx}_${colIdx}`;
 };

@@ -9,20 +9,17 @@ import {
   HeaderRow,
   HeaderCell,
 } from "@zendeskgarden/react-tables";
-import { KEY_CODES } from "@zendeskgarden/container-utilities";
 import {
-  findDownBodyCellId,
-  findUpBodyCellId,
-  findPreviousBodyCellId,
-  findNextBodyCellId,
-  getCurrentHeaderRowAndColumnIdx,
   KEYBOARD_KEYS,
+  CELL_TYPE_BODY,
+  CELL_TYPE_HEADER,
+  navigateUsingKeys,
 } from "./keyboardInteraction";
 
+import { DATA_COMPONENT_ID, bodyCellId, headerCellId } from "./tableMetaData";
 import { TableProps, TableColumn, TableRows } from "./tableProps";
-import { bodyCellId, headerCellId } from "./tableMetaData";
-import { TABLE_BODY_CELL_ID_ATTR, DATA_COMPONENT_ID } from "./tableMetaData";
 import { ReactComponent as GripIcon } from "@zendeskgarden/svg-icons/src/16/grip.svg";
+import { getCurrentHeaderRowAndColumnIdx } from "./keyboardInteraction";
 
 // Module Augmentation - Adding more attributes to existing element - https://www.typescriptlang.org/docs/handbook/declaration-merging.html#global-augmentation
 declare module "react" {
@@ -132,36 +129,41 @@ const ZendeskTableDndComponent = React.memo<TableProps>(
       return newCols;
     };
 
-    const swap = ([...arr], swapIndex1: number, swapIndex2: number) => {
-      const temp = arr[swapIndex1];
-      arr[swapIndex1] = arr[swapIndex2];
-      arr[swapIndex2] = temp;
+    const swap = ([...arr], index1: number, index2: number) => {
+      const temp = arr[index1];
+      arr[index1] = arr[index2];
+      arr[index2] = temp;
       return arr;
     };
 
     const onHeaderCellKeyUp = (
       e: React.KeyboardEvent<HTMLTableCellElement>
     ) => {
-      if (!headerCellTabPressed && e.keyCode === KEY_CODES.SPACE) {
-        setHeaderCellTabPressed(true);
+      if (!headerCellTabPressed) {
+        if (e.key === KEYBOARD_KEYS.SPACE_BAR) {
+          setHeaderCellTabPressed(true);
 
-        const [_, colIdx] = getCurrentHeaderRowAndColumnIdx(
-          e.currentTarget as HTMLTableCellElement
-        );
-        setDraggingColumnIdx(colIdx);
-      }
-
-      if (headerCellTabPressed) {
+          const [_, colIdx] = getCurrentHeaderRowAndColumnIdx(
+            e.currentTarget as HTMLTableCellElement
+          );
+          setDraggingColumnIdx(colIdx);
+          console.log("SET the cold idx", colIdx);
+        } else {
+          console.log("i should be navigating the header");
+          navigateHeader(e);
+        }
+      } else {
         const totalColumns = columns.length;
-        if (e.keyCode === KEY_CODES.LEFT && draggingColumnIdx !== 0) {
+        if (e.key === KEYBOARD_KEYS.ARROW_LEFT && draggingColumnIdx !== 0) {
           setHeaderCellMoving(true);
+          console.log("header name", e.currentTarget.id);
           setDragOverColumnName(e.currentTarget.id);
           setColumns(swap(columns, draggingColumnIdx - 1, draggingColumnIdx));
           setDraggingColumnIdx(draggingColumnIdx - 1);
           setDragOverColumnName("");
         }
         if (
-          e.keyCode === KEY_CODES.RIGHT &&
+          e.key === KEYBOARD_KEYS.ARROW_RIGHT &&
           draggingColumnIdx < totalColumns - 1
         ) {
           setHeaderCellMoving(true);
@@ -170,58 +172,19 @@ const ZendeskTableDndComponent = React.memo<TableProps>(
           setDraggingColumnIdx(draggingColumnIdx + 1);
           setDragOverColumnName("");
         }
-      }
-      if (
-        headerCellTabPressed &&
-        headerCellMoving &&
-        e.keyCode === KEY_CODES.SPACE
-      ) {
-        setHeaderCellTabPressed(false);
-        setHeaderCellMoving(false);
-        console.log("Lets save this config");
+        if (headerCellMoving && e.key === KEYBOARD_KEYS.SPACE_BAR) {
+          setHeaderCellTabPressed(false);
+          setHeaderCellMoving(false);
+        }
       }
     };
 
-    const onBodyCellKeyUp = (e: React.KeyboardEvent<HTMLTableCellElement>) => {
-      const totalRows = rows.length;
-      const totalColumns = columns.length;
-      let moveToCellId: string = bodyCellId(0, 0);
+    const navigateBody = (e: React.KeyboardEvent<HTMLTableCellElement>) => {
+      navigateUsingKeys(e, CELL_TYPE_BODY, columns.length, rows.length);
+    };
 
-      switch (e.key) {
-        // figure out how to switch to left to right
-        case KEYBOARD_KEYS.ARROW_LEFT:
-          moveToCellId = findPreviousBodyCellId(e.currentTarget, totalColumns);
-          break;
-        case KEYBOARD_KEYS.ARROW_RIGHT:
-          moveToCellId = findNextBodyCellId(
-            e.currentTarget,
-            totalColumns,
-            totalRows
-          );
-          break;
-        case KEYBOARD_KEYS.ARROW_UP:
-          moveToCellId = findUpBodyCellId(e.currentTarget);
-          break;
-        case KEYBOARD_KEYS.ARROW_DOWN:
-          moveToCellId = findDownBodyCellId(e.currentTarget, totalRows);
-          break;
-        case KEYBOARD_KEYS.ESCAPE:
-          //  find the component id
-          const component = document.querySelector(
-            `[data-component-id="${DATA_COMPONENT_ID}"]`
-          );
-          (component?.nextSibling as HTMLElement)?.focus();
-          return;
-        default:
-          return;
-      }
-
-      let element: HTMLElement | null = document.querySelector(
-        `[${TABLE_BODY_CELL_ID_ATTR}="${moveToCellId}"]`
-      );
-      if (element != null) {
-        element.focus();
-      }
+    const navigateHeader = (e: React.KeyboardEvent<HTMLTableCellElement>) => {
+      navigateUsingKeys(e, CELL_TYPE_HEADER, columns.length, rows.length);
     };
 
     return (
@@ -232,7 +195,7 @@ const ZendeskTableDndComponent = React.memo<TableProps>(
               {columns.map((col, colIdx) => {
                 return (
                   <StyledHeaderCell
-                    data-header-cell-id={headerCellId(colIdx)}
+                    data-header-cell-id={headerCellId(0, colIdx)}
                     tabIndex={0}
                     width={col.width}
                     id={col.name}
@@ -265,7 +228,7 @@ const ZendeskTableDndComponent = React.memo<TableProps>(
                         data-body-cell-id={bodyCellId(rowIdx, colIdx)}
                         tabIndex={0}
                         key={colIdx}
-                        onKeyUp={onBodyCellKeyUp}
+                        onKeyUp={navigateBody}
                       >
                         <InvisibleGripIcon /> {row[columns[colIdx].name]}
                       </StyledCell>

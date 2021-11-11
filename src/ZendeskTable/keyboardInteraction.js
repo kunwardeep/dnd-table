@@ -91,7 +91,7 @@ const findDownBodyCellId = (element, totalRows) => {
 
 const getCurrentHeaderRowAndColumnIdx = (element) => {
   const [currentRowIdx, currentColumnIdx] = element
-    .getAttribute("data-header-cell-id")
+    .getAttribute("TABLE_HEADER_CELL_ID_ATTR")
     .replace(TABLE_HEADER_ROW_NAME, "")
     .split("_");
   return [parseInt(currentRowIdx, 10), parseInt(currentColumnIdx, 10)];
