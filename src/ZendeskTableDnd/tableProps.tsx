@@ -2,6 +2,7 @@ export type TableColumn = {
   name: string;
   displayName: string;
   width: string;
+  isVisible: boolean;
 };
 
 export interface TableRows {

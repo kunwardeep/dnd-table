@@ -3,7 +3,7 @@ import "@atlaskit/css-reset";
 import { DEFAULT_THEME, ThemeProvider } from "@zendeskgarden/react-theming";
 import ZendeskTable from "./ZendeskTable";
 import ZendeskTableDnd from "./ZendeskTableDnd";
-import { BrowserRouter, Route, Switch, NavLink } from "react-router-dom";
+import { BrowserRouter, Route, Routes, NavLink } from "react-router-dom";
 
 const Navigation = () => {
   return (
@@ -36,13 +36,13 @@ class App extends Component {
           <BrowserRouter>
             <div>
               <Navigation />
-              <Switch>
-                <Route path="/" component={Home} exact />
-                <Route path="/ZendeskTable" component={ZendeskTable} />
-                <Route path="/ZendeskTableDnd" component={ZendeskTableDnd} />
+              <Routes>
+                <Route path="/" element={<Home />} exact />
+                <Route path="/ZendeskTable" element={<ZendeskTable />} />
+                <Route path="/ZendeskTableDnd" element={<ZendeskTableDnd />} />
 
                 <Route component={Error} />
-              </Switch>
+              </Routes>
             </div>
           </BrowserRouter>
         </ThemeProvider>

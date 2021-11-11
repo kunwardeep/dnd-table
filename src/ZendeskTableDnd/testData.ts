@@ -5,46 +5,55 @@ export const dataColumns: TableColumn[] = [
     name: "name",
     displayName: "Name",
     width: "20",
+    isVisible: true,
   },
   {
     name: "phone",
     displayName: "Phone Number",
     width: "20",
+    isVisible: true,
   },
   {
     name: "email",
     displayName: "Email",
     width: "40",
+    isVisible: true,
   },
   {
     name: "address",
-    displayName: "Address",
+    displayName: "address",
     width: "20",
+    isVisible: true,
   },
   {
     name: "postalZip",
     displayName: "Post Code",
     width: "20",
+    isVisible: false,
   },
   {
     name: "region",
     displayName: "Region",
     width: "20",
+    isVisible: false,
   },
   {
     name: "country",
     displayName: "Country",
     width: "20",
+    isVisible: true,
   },
   {
     name: "list",
     displayName: "Shopping List Items",
     width: "20",
+    isVisible: true,
   },
   {
     name: "organizations",
     displayName: "Organizations",
     width: "20",
+    isVisible: false,
   },
 ];
 
