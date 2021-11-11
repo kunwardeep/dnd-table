@@ -218,7 +218,7 @@ const navigateUsingKeys = (
       );
       break;
     case KEYBOARD_KEYS.ESCAPE:
-      //  find the component id
+      //  find the component id so that we can send focus onto the next sibling
       const component = document.querySelector(
         `[data-component-id="${DATA_COMPONENT_ID}"]`
       );

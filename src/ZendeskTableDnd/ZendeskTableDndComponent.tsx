@@ -15,6 +15,7 @@ import {
   CELL_TYPE_HEADER,
   navigateUsingKeys,
 } from "./keyboardInteraction";
+import { Span } from "@zendeskgarden/react-typography";
 
 import { DATA_COMPONENT_ID, bodyCellId, headerCellId } from "./tableMetaData";
 import { TableProps, TableColumn, TableRows } from "./tableProps";
@@ -35,21 +36,22 @@ const verifyColumnsAndRows = (columns: TableColumn[], rows: TableRows) => {
   // We should ensure the the rows have the same columns as specified by the columns variable
 };
 
-const VisibleGripIcon = styled(GripIcon)`
+const StyledGripIcon = styled(GripIcon)`
   vertical-align: middle;
   margin-right: 5px;
-`;
-
-const InvisibleGripIcon = styled(VisibleGripIcon)`
-  visibility: hidden;
 `;
 
 const StyledDiv = styled.div`
   overflow: auto;
 `;
 
-const StyledCell = styled(Cell)`
+const StyledBodyCell = styled(Cell)`
   white-space: nowrap;
+`;
+
+const StyledSpan = styled(Span)`
+  // this padding is same width as StyledGripIcon component
+  padding-left: 21px;
 `;
 
 // cursor: ${({ dragging }) => dragging && "move"};
@@ -74,15 +76,22 @@ const StyledTable = styled(Table)`
   min-width: 100%;
 `;
 
+// const BodyCellText = React.memo<string>(({text}))=>{
+//   return(text)
+// }
+
 const ZendeskTableDndComponent = React.memo<TableProps>(
   ({ tableColumns, tableRows }) => {
     verifyColumnsAndRows(tableColumns, tableRows);
 
     const [columns, setColumns] = useState(tableColumns);
     const [rows] = useState(tableRows);
+    // mouse columns with mouse
     const [draggingColumnIdx, setDraggingColumnIdx] = useState(0);
     const [dragOverColumnName, setDragOverColumnName] = useState("");
     const [draggingColumnName, setDraggingColumnName] = useState("");
+    // move columns with keybaord
+    const [movingColumnIdx, setMovingColumnIdx] = useState(0);
 
     const [headerCellTabPressed, setHeaderCellTabPressed] = useState(false);
     const [headerCellMoving, setHeaderCellMoving] = useState(false);
@@ -146,35 +155,29 @@ const ZendeskTableDndComponent = React.memo<TableProps>(
           const [_, colIdx] = getCurrentHeaderRowAndColumnIdx(
             e.currentTarget as HTMLTableCellElement
           );
-          setDraggingColumnIdx(colIdx);
-          console.log("SET the cold idx", colIdx);
+          setMovingColumnIdx(colIdx);
         } else {
-          console.log("i should be navigating the header");
           navigateHeader(e);
         }
       } else {
         const totalColumns = columns.length;
-        if (e.key === KEYBOARD_KEYS.ARROW_LEFT && draggingColumnIdx !== 0) {
+        if (e.key === KEYBOARD_KEYS.ARROW_LEFT && movingColumnIdx !== 0) {
           setHeaderCellMoving(true);
-          console.log("header name", e.currentTarget.id);
-          setDragOverColumnName(e.currentTarget.id);
-          setColumns(swap(columns, draggingColumnIdx - 1, draggingColumnIdx));
-          setDraggingColumnIdx(draggingColumnIdx - 1);
-          setDragOverColumnName("");
+          setColumns(swap(columns, movingColumnIdx - 1, movingColumnIdx));
+          setMovingColumnIdx(movingColumnIdx - 1);
         }
         if (
           e.key === KEYBOARD_KEYS.ARROW_RIGHT &&
-          draggingColumnIdx < totalColumns - 1
+          movingColumnIdx < totalColumns - 1
         ) {
           setHeaderCellMoving(true);
-          setDragOverColumnName(e.currentTarget.id);
-          setColumns(swap(columns, draggingColumnIdx + 1, draggingColumnIdx));
-          setDraggingColumnIdx(draggingColumnIdx + 1);
-          setDragOverColumnName("");
+          setColumns(swap(columns, movingColumnIdx + 1, movingColumnIdx));
+          setMovingColumnIdx(movingColumnIdx + 1);
         }
         if (headerCellMoving && e.key === KEYBOARD_KEYS.SPACE_BAR) {
           setHeaderCellTabPressed(false);
           setHeaderCellMoving(false);
+          setMovingColumnIdx(0);
         }
       }
     };
@@ -211,7 +214,7 @@ const ZendeskTableDndComponent = React.memo<TableProps>(
                     }
                     onKeyUp={onHeaderCellKeyUp}
                   >
-                    <VisibleGripIcon />
+                    <StyledGripIcon />
                     {col.displayName}
                   </StyledHeaderCell>
                 );
@@ -224,14 +227,14 @@ const ZendeskTableDndComponent = React.memo<TableProps>(
                 <Row key={rowIdx} id={rowIdx.toString()}>
                   {Object.entries(row).map(([_, v], colIdx) => {
                     return (
-                      <StyledCell
+                      <StyledBodyCell
                         data-body-cell-id={bodyCellId(rowIdx, colIdx)}
                         tabIndex={0}
                         key={colIdx}
                         onKeyUp={navigateBody}
                       >
-                        <InvisibleGripIcon /> {row[columns[colIdx].name]}
-                      </StyledCell>
+                        <StyledSpan>{row[columns[colIdx].name]}</StyledSpan>
+                      </StyledBodyCell>
                     );
                   })}
                 </Row>
