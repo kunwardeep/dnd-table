@@ -119,10 +119,20 @@ const getCurrentHeaderRowAndColumnIdx = (element: HTMLTableCellElement) => {
   return [0, 0];
 };
 
+const KEYBOARD_KEYS = {
+  ARROW_UP: "ArrowUp",
+  ARROW_DOWN: "ArrowDown",
+  ARROW_LEFT: "ArrowLeft",
+  ARROW_RIGHT: "ArrowRight",
+  ESCAPE: "Escape",
+  TAB: "Tab",
+};
+
 export {
   findDownBodyCellId,
   findUpBodyCellId,
   findPreviousBodyCellId,
   findNextBodyCellId,
   getCurrentHeaderRowAndColumnIdx,
+  KEYBOARD_KEYS,
 };

@@ -16,11 +16,12 @@ import {
   findPreviousBodyCellId,
   findNextBodyCellId,
   getCurrentHeaderRowAndColumnIdx,
+  KEYBOARD_KEYS,
 } from "./keyboardInteraction";
 
 import { TableProps, TableColumn, TableRows } from "./tableProps";
 import { bodyCellId, headerCellId } from "./tableMetaData";
-import { TABLE_BODY_CELL_ID_ATTR } from "./tableMetaData";
+import { TABLE_BODY_CELL_ID_ATTR, DATA_COMPONENT_ID } from "./tableMetaData";
 import { ReactComponent as GripIcon } from "@zendeskgarden/svg-icons/src/16/grip.svg";
 
 // Module Augmentation - Adding more attributes to existing element - https://www.typescriptlang.org/docs/handbook/declaration-merging.html#global-augmentation
@@ -47,8 +48,7 @@ const InvisibleGripIcon = styled(VisibleGripIcon)`
 `;
 
 const StyledDiv = styled.div`
-  overflow-x: auto;
-  overflow-y: auto;
+  overflow: auto;
 `;
 
 const StyledCell = styled(Cell)`
@@ -108,7 +108,7 @@ const ZendeskTableDndComponent = React.memo<TableProps>(
     };
 
     const handleOnDrop = (e: React.MouseEvent<HTMLElement>) => {
-      const { id, style } = e.target as HTMLElement;
+      const { id } = e.target as HTMLElement;
       const droppedColIdx = columns.findIndex((column) => column.name === id);
       setColumns(rearrangeColumns(draggingColumnIdx, droppedColIdx));
       setDraggingColumnIdx(0);
@@ -186,19 +186,36 @@ const ZendeskTableDndComponent = React.memo<TableProps>(
       const totalRows = rows.length;
       const totalColumns = columns.length;
       let moveToCellId: string = bodyCellId(0, 0);
-      if (e.keyCode === KEY_CODES.LEFT) {
-        moveToCellId = findPreviousBodyCellId(e.currentTarget, totalColumns);
-      } else if (e.keyCode === KEY_CODES.RIGHT) {
-        moveToCellId = findNextBodyCellId(
-          e.currentTarget,
-          totalColumns,
-          totalRows
-        );
-      } else if (e.keyCode === KEY_CODES.UP) {
-        moveToCellId = findUpBodyCellId(e.currentTarget);
-      } else if (e.keyCode === KEY_CODES.DOWN) {
-        moveToCellId = findDownBodyCellId(e.currentTarget, totalRows);
+
+      switch (e.key) {
+        // figure out how to switch to left to right
+        case KEYBOARD_KEYS.ARROW_LEFT:
+          moveToCellId = findPreviousBodyCellId(e.currentTarget, totalColumns);
+          break;
+        case KEYBOARD_KEYS.ARROW_RIGHT:
+          moveToCellId = findNextBodyCellId(
+            e.currentTarget,
+            totalColumns,
+            totalRows
+          );
+          break;
+        case KEYBOARD_KEYS.ARROW_UP:
+          moveToCellId = findUpBodyCellId(e.currentTarget);
+          break;
+        case KEYBOARD_KEYS.ARROW_DOWN:
+          moveToCellId = findDownBodyCellId(e.currentTarget, totalRows);
+          break;
+        case KEYBOARD_KEYS.ESCAPE:
+          //  find the component id
+          const component = document.querySelector(
+            `[data-component-id="${DATA_COMPONENT_ID}"]`
+          );
+          (component?.nextSibling as HTMLElement)?.focus();
+          return;
+        default:
+          return;
       }
+
       let element: HTMLElement | null = document.querySelector(
         `[${TABLE_BODY_CELL_ID_ATTR}="${moveToCellId}"]`
       );
@@ -208,7 +225,7 @@ const ZendeskTableDndComponent = React.memo<TableProps>(
     };
 
     return (
-      <StyledDiv tabIndex={0}>
+      <StyledDiv tabIndex={0} data-component-id={DATA_COMPONENT_ID}>
         <StyledTable>
           <Head>
             <HeaderRow>

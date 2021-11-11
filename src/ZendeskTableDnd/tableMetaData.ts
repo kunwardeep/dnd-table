@@ -5,6 +5,8 @@ export const TABLE_HEADER_CELL_ID_VALUE = "customer-tbl-header-cell-id_";
 export const TABLE_BODY_CELL_ID_ATTR = "data-body-cell-id";
 export const TABLE_HEADER_CELL_ID_ATTR = "data-header-cell-id";
 
+export const DATA_COMPONENT_ID = "drag-and-drop-table";
+
 export const bodyCellId = (rowIdx: number, colIdx: number) => {
   return `${TABLE_BODY_CELL_ID_VALUE}${rowIdx}_${colIdx}`;
 };
