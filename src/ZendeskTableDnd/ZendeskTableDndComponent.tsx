@@ -18,7 +18,7 @@ import {
 import { Span } from "@zendeskgarden/react-typography";
 
 import { DATA_COMPONENT_ID, bodyCellId, headerCellId } from "./tableMetaData";
-import { TableProps, TableColumn, TableRows } from "./tableProps";
+import { ITableProps, ITableColumn, ITableRows } from "./tableProps";
 import { ReactComponent as GripIcon } from "@zendeskgarden/svg-icons/src/16/grip.svg";
 import { getCurrentHeaderRowAndColumnIdx } from "./keyboardInteraction";
 
@@ -31,10 +31,6 @@ declare module "react" {
     dragOver?: boolean;
   }
 }
-
-const verifyColumnsAndRows = (columns: TableColumn[], rows: TableRows) => {
-  // We should ensure the the rows have the same columns as specified by the columns variable
-};
 
 const StyledGripIcon = styled(GripIcon)`
   vertical-align: middle;
@@ -76,16 +72,34 @@ const StyledTable = styled(Table)`
   min-width: 100%;
 `;
 
-// const BodyCellText = React.memo<string>(({text}))=>{
-//   return(text)
-// }
+const visibleColumns = (columns: ITableColumn[]) =>
+  columns.filter((col) => {
+    return col.isVisible === true;
+  });
 
-const ZendeskTableDndComponent = React.memo<TableProps>(
-  ({ tableColumns, tableRows }) => {
-    verifyColumnsAndRows(tableColumns, tableRows);
+const hiddenColumns = (columns: ITableColumn[]) =>
+  columns.filter((col) => {
+    return col.isVisible === false;
+  });
 
-    const [columns, setColumns] = useState(tableColumns);
-    const [rows] = useState(tableRows);
+const removeProperty =
+  (delProp: any) =>
+  ({ [delProp]: _, ...rest }) =>
+    rest;
+
+const visibleColumnsOnRows = (rows: ITableRows, columns: ITableColumn[]) =>
+  rows.map((row: any) => {
+    let rowWithRemovedColumns = row;
+    hiddenColumns(columns).forEach((column) => {
+      rowWithRemovedColumns = removeProperty(column.name)(
+        rowWithRemovedColumns
+      );
+    });
+    return rowWithRemovedColumns;
+  });
+
+const ZendeskTableDndComponent = React.memo<ITableProps>(
+  ({ columns, rows, setColumns }) => {
     // mouse columns with mouse
     const [draggingColumnIdx, setDraggingColumnIdx] = useState(0);
     const [dragOverColumnName, setDragOverColumnName] = useState("");
@@ -195,7 +209,7 @@ const ZendeskTableDndComponent = React.memo<TableProps>(
         <StyledTable>
           <Head>
             <HeaderRow>
-              {columns.map((col, colIdx) => {
+              {visibleColumns(columns).map((col, colIdx) => {
                 return (
                   <StyledHeaderCell
                     data-header-cell-id={headerCellId(0, colIdx)}
@@ -222,24 +236,28 @@ const ZendeskTableDndComponent = React.memo<TableProps>(
             </HeaderRow>
           </Head>
           <Body>
-            {rows.map((row: any, rowIdx: number) => {
-              return (
-                <Row key={rowIdx} id={rowIdx.toString()}>
-                  {Object.entries(row).map(([_, v], colIdx) => {
-                    return (
-                      <StyledBodyCell
-                        data-body-cell-id={bodyCellId(rowIdx, colIdx)}
-                        tabIndex={0}
-                        key={colIdx}
-                        onKeyUp={navigateBody}
-                      >
-                        <StyledSpan>{row[columns[colIdx].name]}</StyledSpan>
-                      </StyledBodyCell>
-                    );
-                  })}
-                </Row>
-              );
-            })}
+            {visibleColumnsOnRows(rows, columns).map(
+              (row: any, rowIdx: number) => {
+                return (
+                  <Row key={rowIdx} id={rowIdx.toString()}>
+                    {Object.entries(row).map((_, colIdx) => {
+                      return (
+                        <StyledBodyCell
+                          data-body-cell-id={bodyCellId(rowIdx, colIdx)}
+                          tabIndex={0}
+                          key={colIdx}
+                          onKeyUp={navigateBody}
+                        >
+                          <StyledSpan>
+                            {row[visibleColumns(columns)[colIdx].name]}
+                          </StyledSpan>
+                        </StyledBodyCell>
+                      );
+                    })}
+                  </Row>
+                );
+              }
+            )}
           </Body>
         </StyledTable>
       </StyledDiv>

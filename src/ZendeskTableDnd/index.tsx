@@ -1,39 +1,26 @@
 import ZendeskTableDndComponent from "./ZendeskTableDndComponent";
 import React, { useState } from "react";
 import { dataColumns, dataRows } from "./testData";
-import { TableColumn, TableRows } from "./tableProps";
-const visibleColumns = (columns: TableColumn[]) =>
-  columns.filter((col) => {
-    return col.isVisible === true;
-  });
+import { ITableColumn, ITableRows } from "./tableProps";
+import ColumnList from "./ColumnList";
 
-const hiddenColumns = (columns: TableColumn[]) =>
-  columns.filter((col) => {
-    return col.isVisible === false;
-  });
+const verifyColumnsAndRows = (columns: ITableColumn[], rows: ITableRows) => {
+  // We should ensure the the rows have the same columns as specified by the columns variable
+};
 
-const removeProperty =
-  (delProp: any) =>
-  ({ [delProp]: _, ...rest }) =>
-    rest;
-
-const visibleColumnsOnRows = (rows: TableRows, columns: TableColumn[]) =>
-  rows.map((row: any) => {
-    let rowWithRemovedColumns = row;
-    hiddenColumns(columns).forEach((column) => {
-      rowWithRemovedColumns = removeProperty(column.name)(
-        rowWithRemovedColumns
-      );
-    });
-    return rowWithRemovedColumns;
-  });
 const ZendeskTableDnd = React.memo(() => {
-  const [rows, setRows] = useState(visibleColumnsOnRows(dataRows, dataColumns));
-  const [columns, setColumns] = useState(visibleColumns(dataColumns));
+  verifyColumnsAndRows(dataColumns, dataRows);
+  const [rows] = useState(dataRows);
+  const [columns, setColumns] = useState(dataColumns);
 
   return (
     <div>
-      <ZendeskTableDndComponent tableColumns={columns} tableRows={rows} />
+      <ColumnList columns={columns} setColumns={setColumns} />
+      <ZendeskTableDndComponent
+        columns={columns}
+        rows={rows}
+        setColumns={setColumns}
+      />
       <button>Fake button</button>
     </div>
   );

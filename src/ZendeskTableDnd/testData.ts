@@ -1,6 +1,6 @@
-import { TableColumn, TableRows } from "./tableProps";
+import { ITableColumn, ITableRows } from "./tableProps";
 
-export const dataColumns: TableColumn[] = [
+export const dataColumns: ITableColumn[] = [
   {
     name: "name",
     displayName: "Name",
@@ -21,7 +21,7 @@ export const dataColumns: TableColumn[] = [
   },
   {
     name: "address",
-    displayName: "address",
+    displayName: "Address",
     width: "20",
     isVisible: true,
   },
@@ -57,7 +57,7 @@ export const dataColumns: TableColumn[] = [
   },
 ];
 
-export const dataRows: TableRows = [
+export const dataRows: ITableRows = [
   {
     name: "Hilary Sanders",
     phone: "(09) 4613 7681",
