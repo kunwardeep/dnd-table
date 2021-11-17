@@ -5,13 +5,7 @@
  * found at http://www.apache.org/licenses/LICENSE-2.0.
  */
 
-import React, {
-  useState,
-  useRef,
-  useEffect,
-  Dispatch,
-  SetStateAction,
-} from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Dropdown, Menu, Item, Trigger } from "@zendeskgarden/react-dropdowns";
 import { Button } from "@zendeskgarden/react-buttons";
 import { Row, Col } from "@zendeskgarden/react-grid";
@@ -24,12 +18,16 @@ import { ReactComponent as GripIcon } from "@zendeskgarden/svg-icons/src/16/grip
 import { MD } from "@zendeskgarden/react-typography";
 import { MediaInput } from "@zendeskgarden/react-forms";
 import { ReactComponent as StartIcon } from "@zendeskgarden/svg-icons/src/16/search-stroke.svg";
-import { ReactComponent as CloseXCircle } from "@zendeskgarden/svg-icons/src/16/x-circle-stroke.svg";
+import { ReactComponent as XStrokeIcon } from "@zendeskgarden/svg-icons/src/16/x-stroke.svg";
 import debounce from "lodash.debounce";
 
 const StyledGripIcon = styled(GripIcon)`
   vertical-align: middle;
   margin-right: 5px;
+`;
+
+const ClearSearch = styled.div`
+  cursor: pointer;
 `;
 
 const StyleCheckIconGreenVisible = styled(CheckIcon)`
@@ -113,11 +111,22 @@ const ColumnList = React.memo<IColumnListProps>(({ columns, setColumns }) => {
     setColumns(toggleColumnVisibility(e?.currentTarget?.id, columns));
   };
 
-  const handleSearchBoxOnChange = (
-    e: React.KeyboardEvent<HTMLInputElement>
-  ) => {
-    console.log("input", e.currentTarget.value);
-    setInputValue(e?.currentTarget?.value);
+  // const handleSearchBoxOnChange = (
+  //   e: React.KeyboardEvent<HTMLInputElement>
+  // ) => {
+  //   setInputValue(e?.currentTarget?.value);
+  // };
+
+  const handleSearchBoxOnChange = (e: { target: { value: string } }) => {
+    setInputValue(e?.target?.value);
+  };
+
+  const searchEndIcon = () => {
+    return (
+      <ClearSearch role="button" onClick={() => setInputValue("")}>
+        <XStrokeIcon aria-label="x-icon" />
+      </ClearSearch>
+    );
   };
 
   return (
@@ -145,9 +154,10 @@ const ColumnList = React.memo<IColumnListProps>(({ columns, setColumns }) => {
             <Item key="searchBox" value="search box">
               <MediaInput
                 start={<StartIcon />}
-                end={<CloseXCircle />}
-                onKeyUp={handleSearchBoxOnChange}
-                defaultValue={inputValue}
+                end={searchEndIcon()}
+                // onKeyUp={handleSearchBoxOnChange}
+                value={inputValue}
+                onChange={handleSearchBoxOnChange}
               />
             </Item>
             {filteredColumns.map((column: any) => {
