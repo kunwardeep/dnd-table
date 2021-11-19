@@ -20,6 +20,18 @@ import { ReactComponent as StartIcon } from "@zendeskgarden/svg-icons/src/16/sea
 import { ReactComponent as XStrokeIcon } from "@zendeskgarden/svg-icons/src/16/x-stroke.svg";
 import debounce from "lodash.debounce";
 import { ActionToggleColumn } from "./tableProps";
+import { ControllerStateAndHelpers } from "downshift";
+
+const downshiftProps = {
+  onOuterClick: (stateAndHelpers: ControllerStateAndHelpers<any>): void => {
+    console.log("out");
+    const cb = () => {
+      console.log("cb called");
+    };
+    stateAndHelpers.closeMenu(cb);
+  },
+};
+
 const ClearSearch = styled.div`
   cursor: pointer;
 `;
@@ -133,10 +145,12 @@ const ColumnList = React.memo<IColumnListProps>(
         <Col textAlign="end">
           <Dropdown
             isOpen={isDropDownOpen}
-            onStateChange={(options) =>
+            downshiftProps={downshiftProps}
+            onStateChange={(options, stateAndHelpers) => {
               Object.prototype.hasOwnProperty.call(options, "isOpen") &&
-              setRotated(options.isOpen)
-            }
+                setRotated(options.isOpen);
+              console.log("state change", stateAndHelpers);
+            }}
           >
             <Trigger>
               <Button onClick={clickOnDropDownButton}>
