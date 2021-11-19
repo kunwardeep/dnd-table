@@ -18,7 +18,7 @@ import {
 import { Span } from "@zendeskgarden/react-typography";
 
 import { DATA_COMPONENT_ID, bodyCellId, headerCellId } from "./tableMetaData";
-import { ITableProps, ITableColumn, ITableRows } from "./tableProps";
+import { ActionMoveColumn, ITableProps } from "./tableProps";
 import { ReactComponent as GripIcon } from "@zendeskgarden/svg-icons/src/16/grip.svg";
 import { getCurrentHeaderRowAndColumnIdx } from "./keyboardInteraction";
 
@@ -72,39 +72,13 @@ const StyledTable = styled(Table)`
   min-width: 100%;
 `;
 
-const visibleColumns = (columns: ITableColumn[]) =>
-  columns.filter((col) => {
-    return col.isVisible === true;
-  });
-
-const hiddenColumns = (columns: ITableColumn[]) =>
-  columns.filter((col) => {
-    return col.isVisible === false;
-  });
-
-const removeProperty =
-  (delProp: any) =>
-  ({ [delProp]: _, ...rest }) =>
-    rest;
-
-const visibleColumnsOnRows = (rows: ITableRows, columns: ITableColumn[]) =>
-  rows.map((row: any) => {
-    let rowWithRemovedColumns = row;
-    hiddenColumns(columns).forEach((column) => {
-      rowWithRemovedColumns = removeProperty(column.name)(
-        rowWithRemovedColumns
-      );
-    });
-    return rowWithRemovedColumns;
-  });
-
 const ZendeskTableDndComponent = React.memo<ITableProps>(
-  ({ columns, rows, setColumns }) => {
+  ({ columns, rows, dispatch }) => {
     // mouse columns with mouse
     const [draggingColumnIdx, setDraggingColumnIdx] = useState(0);
     const [dragOverColumnName, setDragOverColumnName] = useState("");
     const [draggingColumnName, setDraggingColumnName] = useState("");
-    // move columns with keybaord
+    // move columns with keyboard
     const [movingColumnIdx, setMovingColumnIdx] = useState(0);
 
     const [headerCellTabPressed, setHeaderCellTabPressed] = useState(false);
@@ -130,13 +104,14 @@ const ZendeskTableDndComponent = React.memo<ITableProps>(
     const handleOnDrop = (e: React.MouseEvent<HTMLElement>) => {
       const { id } = e.target as HTMLElement;
       const droppedColIdx = columns.findIndex((column) => column.name === id);
-      setColumns(rearrangeColumns(draggingColumnIdx, droppedColIdx));
+
+      dispatch(ActionMoveColumn(moveColumns(draggingColumnIdx, droppedColIdx)));
       setDraggingColumnIdx(0);
       setDragOverColumnName("");
       setDraggingColumnName("");
     };
 
-    const rearrangeColumns = (movedFromIdx: number, movedToIdx: number) => {
+    const moveColumns = (movedFromIdx: number, movedToIdx: number) => {
       const movingLeft = movedFromIdx > movedToIdx;
       const movingRight = movedFromIdx < movedToIdx;
       let newCols = [...columns];
@@ -177,7 +152,11 @@ const ZendeskTableDndComponent = React.memo<ITableProps>(
         const totalColumns = columns.length;
         if (e.key === KEYBOARD_KEYS.ARROW_LEFT && movingColumnIdx !== 0) {
           setHeaderCellMoving(true);
-          setColumns(swap(columns, movingColumnIdx - 1, movingColumnIdx));
+          dispatch(
+            ActionMoveColumn(
+              swap(columns, movingColumnIdx - 1, movingColumnIdx)
+            )
+          );
           setMovingColumnIdx(movingColumnIdx - 1);
         }
         if (
@@ -185,7 +164,11 @@ const ZendeskTableDndComponent = React.memo<ITableProps>(
           movingColumnIdx < totalColumns - 1
         ) {
           setHeaderCellMoving(true);
-          setColumns(swap(columns, movingColumnIdx + 1, movingColumnIdx));
+          dispatch(
+            ActionMoveColumn(
+              swap(columns, movingColumnIdx + 1, movingColumnIdx)
+            )
+          );
           setMovingColumnIdx(movingColumnIdx + 1);
         }
         if (headerCellMoving && e.key === KEYBOARD_KEYS.SPACE_BAR) {
@@ -209,7 +192,7 @@ const ZendeskTableDndComponent = React.memo<ITableProps>(
         <StyledTable>
           <Head>
             <HeaderRow>
-              {visibleColumns(columns).map((col, colIdx) => {
+              {columns.map((col, colIdx) => {
                 return (
                   <StyledHeaderCell
                     data-header-cell-id={headerCellId(0, colIdx)}
@@ -236,28 +219,24 @@ const ZendeskTableDndComponent = React.memo<ITableProps>(
             </HeaderRow>
           </Head>
           <Body>
-            {visibleColumnsOnRows(rows, columns).map(
-              (row: any, rowIdx: number) => {
-                return (
-                  <Row key={rowIdx} id={rowIdx.toString()}>
-                    {Object.entries(row).map((_, colIdx) => {
-                      return (
-                        <StyledBodyCell
-                          data-body-cell-id={bodyCellId(rowIdx, colIdx)}
-                          tabIndex={0}
-                          key={colIdx}
-                          onKeyUp={navigateBody}
-                        >
-                          <StyledSpan>
-                            {row[visibleColumns(columns)[colIdx].name]}
-                          </StyledSpan>
-                        </StyledBodyCell>
-                      );
-                    })}
-                  </Row>
-                );
-              }
-            )}
+            {rows.map((row: any, rowIdx: number) => {
+              return (
+                <Row key={rowIdx} id={rowIdx.toString()}>
+                  {Object.entries(row).map((_, colIdx) => {
+                    return (
+                      <StyledBodyCell
+                        data-body-cell-id={bodyCellId(rowIdx, colIdx)}
+                        tabIndex={0}
+                        key={colIdx}
+                        onKeyUp={navigateBody}
+                      >
+                        <StyledSpan>{row[columns[colIdx].name]}</StyledSpan>
+                      </StyledBodyCell>
+                    );
+                  })}
+                </Row>
+              );
+            })}
           </Body>
         </StyledTable>
       </StyledDiv>

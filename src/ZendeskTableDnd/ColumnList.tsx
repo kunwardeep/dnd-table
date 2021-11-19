@@ -14,34 +14,30 @@ import { ReactComponent as CheckIcon } from "@zendeskgarden/svg-icons/src/16/che
 import styled from "styled-components";
 import { IColumnListProps, ITableColumn } from "./tableProps";
 import { Span } from "@zendeskgarden/react-typography";
-import { ReactComponent as GripIcon } from "@zendeskgarden/svg-icons/src/16/grip.svg";
 import { MD } from "@zendeskgarden/react-typography";
 import { MediaInput } from "@zendeskgarden/react-forms";
 import { ReactComponent as StartIcon } from "@zendeskgarden/svg-icons/src/16/search-stroke.svg";
 import { ReactComponent as XStrokeIcon } from "@zendeskgarden/svg-icons/src/16/x-stroke.svg";
 import debounce from "lodash.debounce";
-
-const StyledGripIcon = styled(GripIcon)`
-  vertical-align: middle;
-  margin-right: 5px;
-`;
-
+import { ActionToggleColumn } from "./tableProps";
 const ClearSearch = styled.div`
   cursor: pointer;
 `;
 
 const StyleCheckIconGreenVisible = styled(CheckIcon)`
   color: #1f73b7;
+  margin-right: 10px;
+  vertical-align: middle;
 `;
 const StyleCheckIconGreenInVisible = styled(StyleCheckIconGreenVisible)`
   visibility: hidden;
 `;
 
 const StyledItem = styled(Item)`
-  // line-=height: 21px;
+  // line-height: 20px;
 `;
 const StyledSpan = styled(Span)`
-  line-=height: 21px;
+  // line-height: 21px;
 `;
 
 type CheckIconComponentProps = {
@@ -60,126 +56,129 @@ const CheckIconComponent = React.memo<CheckIconComponentProps>(
 
 const toggleColumnVisibility = (
   columnName: string,
-  columns: ITableColumn[]
+  [...columns]: ITableColumn[]
 ) => {
   return columns.map((col) => {
     if (col.name === columnName) {
-      col.isVisible = !col.isVisible;
+      return Object.assign({}, col, {
+        isVisible: !col.isVisible,
+      });
     }
     return col;
   });
 };
 
-const ColumnList = React.memo<IColumnListProps>(({ columns, setColumns }) => {
-  const [rotated, setRotated] = useState<boolean | undefined>();
-  const [isDropDownOpen, setIsDropDownOpen] = useState<boolean>(false);
-  const [filteredColumns, setFilteredColumns] = useState(columns);
-  const [inputValue, setInputValue] = useState("");
+const ColumnList = React.memo<IColumnListProps>(
+  ({ columnListColumns, dispatch }) => {
+    const [rotated, setRotated] = useState<boolean | undefined>();
+    const [isDropDownOpen, setIsDropDownOpen] = useState<boolean>(false);
+    const [filteredColumns, setFilteredColumns] = useState(columnListColumns);
+    const [inputValue, setInputValue] = useState("");
 
-  useEffect(() => {
-    if (inputValue === "") {
-      setFilteredColumns(columns);
-    }
-  }, [columns, inputValue]);
+    useEffect(() => {
+      if (inputValue === "") {
+        setFilteredColumns(columnListColumns);
+      }
+    }, [columnListColumns, inputValue]);
 
-  /**
-   * Debounce filtering
-   */
-  const filterMatchingOptionsRef = useRef(
-    debounce((value: string) => {
-      const matchedFilters = filteredColumns.filter(
-        (column) =>
-          column.displayName
-            .trim()
-            .toLowerCase()
-            .indexOf(value.trim().toLowerCase()) !== -1
-      );
+    /**
+     * Debounce filtering
+     */
+    const filterMatchingOptionsRef = useRef(
+      debounce((value: string) => {
+        const matchedFilters = filteredColumns.filter(
+          (column) =>
+            column.displayName
+              .trim()
+              .toLowerCase()
+              .indexOf(value.trim().toLowerCase()) !== -1
+        );
 
-      setFilteredColumns(matchedFilters);
-    }, 100)
-  );
-
-  useEffect(() => {
-    filterMatchingOptionsRef.current(inputValue);
-  }, [inputValue]);
-
-  const clickOnDropDownButton = () => {
-    setIsDropDownOpen(!isDropDownOpen);
-  };
-
-  const handleOnClick = (e: React.MouseEvent<HTMLLIElement>) => {
-    setColumns(toggleColumnVisibility(e?.currentTarget?.id, columns));
-  };
-
-  // const handleSearchBoxOnChange = (
-  //   e: React.KeyboardEvent<HTMLInputElement>
-  // ) => {
-  //   setInputValue(e?.currentTarget?.value);
-  // };
-
-  const handleSearchBoxOnChange = (e: { target: { value: string } }) => {
-    setInputValue(e?.target?.value);
-  };
-
-  const searchEndIcon = () => {
-    return (
-      <ClearSearch role="button" onClick={() => setInputValue("")}>
-        <XStrokeIcon aria-label="x-icon" />
-      </ClearSearch>
+        setFilteredColumns(matchedFilters);
+      }, 100)
     );
-  };
 
-  return (
-    <Row>
-      <Col textAlign="end">
-        <Dropdown
-          isOpen={isDropDownOpen}
-          onStateChange={(options) =>
-            Object.prototype.hasOwnProperty.call(options, "isOpen") &&
-            setRotated(options.isOpen)
-          }
-        >
-          <Trigger>
-            <Button onClick={clickOnDropDownButton}>
-              Edit columns
-              <Button.EndIcon isRotated={rotated}>
-                <ChevronIcon />
-              </Button.EndIcon>
-            </Button>
-          </Trigger>
-          <Menu maxHeight="800px">
-            <Item key="editColumn" value="Edit columns">
-              <MD isBold>Edit columns</MD>
-            </Item>
-            <Item key="searchBox" value="search box">
-              <MediaInput
-                start={<StartIcon />}
-                end={searchEndIcon()}
-                // onKeyUp={handleSearchBoxOnChange}
-                value={inputValue}
-                onChange={handleSearchBoxOnChange}
-              />
-            </Item>
-            {filteredColumns.map((column: any) => {
-              return (
-                <StyledItem
-                  key={column.name}
-                  value={column.name}
-                  id={column.name}
-                  onClick={handleOnClick}
-                >
-                  <StyledSpan>
-                    <CheckIconComponent isVisible={column.isVisible} />
-                    {column.displayName}
-                  </StyledSpan>
-                </StyledItem>
-              );
-            })}
-          </Menu>
-        </Dropdown>
-      </Col>
-    </Row>
-  );
-});
+    useEffect(() => {
+      filterMatchingOptionsRef.current(inputValue);
+    }, [inputValue]);
+
+    const clickOnDropDownButton = () => {
+      setIsDropDownOpen(!isDropDownOpen);
+    };
+
+    const handleOnClick = (e: React.MouseEvent<HTMLLIElement>) => {
+      const currentColumnName = e?.currentTarget?.id;
+
+      const toggledColumns = toggleColumnVisibility(
+        currentColumnName,
+        columnListColumns
+      );
+      dispatch(ActionToggleColumn(toggledColumns));
+    };
+
+    const handleSearchBoxOnChange = (e: { target: { value: string } }) => {
+      setInputValue(e?.target?.value);
+    };
+
+    const searchEndIcon = () => {
+      return (
+        <ClearSearch role="button" onClick={() => setInputValue("")}>
+          <XStrokeIcon aria-label="x-icon" />
+        </ClearSearch>
+      );
+    };
+
+    return (
+      <Row>
+        <Col textAlign="end">
+          <Dropdown
+            isOpen={isDropDownOpen}
+            onStateChange={(options) =>
+              Object.prototype.hasOwnProperty.call(options, "isOpen") &&
+              setRotated(options.isOpen)
+            }
+          >
+            <Trigger>
+              <Button onClick={clickOnDropDownButton}>
+                Edit columns
+                <Button.EndIcon isRotated={rotated}>
+                  <ChevronIcon />
+                </Button.EndIcon>
+              </Button>
+            </Trigger>
+            <Menu maxHeight="800px">
+              <Item key="editColumn" value="Edit columns">
+                <MD isBold>Edit columns</MD>
+              </Item>
+              <Item key="searchBox" value="search box">
+                <MediaInput
+                  start={<StartIcon />}
+                  end={searchEndIcon()}
+                  value={inputValue}
+                  onChange={handleSearchBoxOnChange}
+                />
+              </Item>
+              {filteredColumns.map((column: any) => {
+                return (
+                  <StyledItem
+                    key={column.name}
+                    value={column.name}
+                    id={column.name}
+                    onClick={handleOnClick}
+                  >
+                    <StyledSpan>
+                      <CheckIconComponent isVisible={column.isVisible} />
+                      {column.displayName}
+                    </StyledSpan>
+                  </StyledItem>
+                );
+              })}
+            </Menu>
+          </Dropdown>
+        </Col>
+      </Row>
+    );
+  }
+);
 
 export default ColumnList;

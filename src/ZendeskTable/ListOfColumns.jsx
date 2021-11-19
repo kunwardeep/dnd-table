@@ -14,17 +14,13 @@ const ColumnList = ({ tableColumns, setExternalColumns }) => {
     const { name } = e.currentTarget;
 
     let newColumns = checkBoxList.map((listItem) => {
-      console.log("listItemName", name);
-      console.log("listItem.name", listItem.name);
       if (listItem.name === name) {
         listItem.isDisplayed = !listItem.isDisplayed;
       }
       return listItem;
     });
-    console.log(newColumns);
     // setCheckBoxList(newColumns);
     setExternalColumns(displayedDataColumns(newColumns));
-    console.log(newColumns);
   };
 
   return checkBoxList.map((listItem) => {
